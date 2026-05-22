@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Faculty Directory</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .name {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .email {
+            color: #1a73e8;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+
+<body>
+
+    <h1>คณาจารย์</h1>
+    <div id="list">กำลังโหลดข้อมูล...</div>
+
+    <script>
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRcdBlMGa0AE8BIs4459jd1zvxJyijj5lDxFk7E-EhT7JyLxl6hC0ntGFeQtN13Xsy9xrzURcYxifIZ/pub?output=csv';
+
+        // ฟังก์ชันแปลงลิงก์ Google Drive ให้เป็น Direct Link
+        function getGoogleDriveDirectLink(url) {
+            if (!url) return 'https://via.placeholder.com/100'; // รูป placeholder หากไม่มีไฟล์
+            const match = url.match(/id=([a-zA-Z0-9_-]+)/);
+            if (match) {
+                return `https://lh3.googleusercontent.com/d/${match[1]}=s200`;
+            }
+            return url;
+        }
+
+        Papa.parse(CSV_URL, {
+            download: true,
+            header: true,
+            complete: function (results) {
+                const container = document.getElementById('list');
+                container.innerHTML = '';
+
+                results.data.forEach(teacher => {
+                    console.log(teacher);
+                    const rawImageLink = teacher['อัปโหลดรูปถ่ายหน้าตรงเพื่อการทำงาน / รูปโปรไฟล์'];
+                    const directImageLink = getGoogleDriveDirectLink(rawImageLink);
+
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <div style="display: flex; gap: 20px;">
+                            <img src="${directImageLink}" alt="Profile" style="width:120px; height:150px; object-fit:cover; border-radius:8px;">
+                            <div>
+                                <div class="name">${teacher['ชื่อ-นามสกุลจริง (ตามที่ปรากฏในเอกสารทางราชการ) ']} (${teacher['ชื่อเล่น หรือ ชื่อที่สะดวกให้เรียกอย่างไม่เป็นทางการ ']})</div>
+                                <p><strong>ตำแหน่ง:</strong> ${teacher['ตำแหน่งปัจจุบัน / ตำแหน่งทางวิชาการ ']} | <strong>สังกัด:</strong> ${teacher['สังกัด / ชื่อสถาบัน']}</p>
+                                <p><strong>ภาควิชา/คณะ:</strong> ${teacher['ภาควิชา / คณะ ']}</p>
+                                <p><strong>อีเมล:</strong> <a href="mailto:${teacher['อีเมลหลักสำหรับติดต่อประสานงาน (หรือ อีเมลทางการ) ']}">${teacher['อีเมลหลักสำหรับติดต่อประสานงาน (หรือ อีเมลทางการ) ']}</a></p>
+                                <p><strong>โทร:</strong> ${teacher['เบอร์โทรศัพท์ที่ทำงาน หรือ เบอร์ติดต่อหลัก ']}</p>
+                                <p><strong>วิจัยที่สนใจ:</strong> ${teacher['ระบุสาขาวิจัยที่สนใจหลัก (เช่น 3 ถึง 5 หัวข้อหลัก โดยคั่นด้วยเครื่องหมายจุลภาค) ']}</p>
+                                <p style="font-size: 0.8rem; color: #888;">วันเกิด: ${teacher['วัน/เดือน/ปีเกิด (ใช้สำหรับวัตถุประสงค์ทางการบริหารจัดการเท่านั้น) ']}</p>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
